@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<project name="mongocloud-servlet" default="war" basedir=".">
+	<property name="warname" value="mongocloud.war"/>
+	<property name="srcDir" value="src"/>
+	<property name="libDir" value="lib"/>
+    <property name="tmpDir" value="tmp"/>
+    <property name="releaseDir" value="release"/>
+    
+    <target name="compile">
+        <mkdir dir="${tmpDir}"/>
+        <mkdir dir="${tmpDir}/classes"/>
+
+        <javac srcdir="${srcDir}" destdir="${tmpDir}/classes" encoding="UTF8" debug="on" debuglevel="source,lines">
+            <classpath id="classpath">
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
+        </javac>
+        <copy todir="${tmpDir}/classes" overwrite="true">
+            <fileset dir="${srcDir}" includes="mongocloud/**" excludes="**/*.java"/>
+            <fileset dir="${srcDir}" includes="net/**" excludes="**/*.java"/>
+            <fileset dir="${srcDir}" includes="bwf/**" excludes="**/*.java"/>
+        </copy>
+    </target>
+    
+    <target name="war" depends="compile">
+        <mkdir dir="${releaseDir}" />
+        <mkdir dir="${tmpDir}/WEB-INF/classes/" />
+        <mkdir dir="${tmpDir}/WEB-INF/lib/" />
+        <copy todir="${tmpDir}/WEB-INF" overwrite="true">
+            <fileset dir="${srcDir}" includes="web.xml"/>
+        </copy>
+        <copy todir="${tmpDir}/WEB-INF/classes/" overwrite="true">
+            <fileset dir="${tmpDir}/classes/"/>
+        </copy>
+        <copy todir="${tmpDir}/WEB-INF/lib/" overwrite="true">
+            <fileset dir="${libDir}/" includes="*.jar" excludes="servlet-api*"/>
+        </copy>
+        <jar basedir="${tmpDir}" destfile="${releaseDir}/${warname}">
+            <include name="WEB-INF/**"/>
+        </jar>
+        
+        <!--
+        -->
+        <delete dir="${tmpDir}/classes"/>
+        <delete dir="${tmpDir}/lib"/>
+        <delete dir="${tmpDir}/WEB-INF"/>
+        <delete dir="${tmpDir}/META-INF"/>
+    </target>
+</project>
+
