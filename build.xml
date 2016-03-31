@@ -2,6 +2,7 @@
 
 <project name="mongocloud-servlet" default="war" basedir=".">
 	<property name="warname" value="mongocloud.war"/>
+	<property name="jarname" value="mongocloud.jar"/>
 	<property name="srcDir" value="src"/>
 	<property name="libDir" value="lib"/>
     <property name="tmpDir" value="tmp"/>
@@ -34,18 +35,32 @@
             <fileset dir="${tmpDir}/classes/"/>
         </copy>
         <copy todir="${tmpDir}/WEB-INF/lib/" overwrite="true">
-            <fileset dir="${libDir}/" includes="*.jar" excludes="servlet-api*"/>
+            <fileset dir="${libDir}/" includes="*.jar" excludes="servlet-api*,jetty*"/>
         </copy>
         <jar basedir="${tmpDir}" destfile="${releaseDir}/${warname}">
-            <include name="WEB-INF/**"/>
+            <include name="WEB-INF/lib/**"/>
+            <include name="WEB-INF/classes/net/**"/>
+            <include name="WEB-INF/classes/mongocloud/**"/>
+            <include name="WEB-INF/classes/bwf/**"/>
         </jar>
         
-        <!--
-        -->
-        <delete dir="${tmpDir}/classes"/>
-        <delete dir="${tmpDir}/lib"/>
         <delete dir="${tmpDir}/WEB-INF"/>
-        <delete dir="${tmpDir}/META-INF"/>
     </target>
+    
+    <target name="jar" depends="compile">
+        <mkdir dir="${releaseDir}" />
+        <jar basedir="${tmpDir}/classes" destfile="${releaseDir}/${jarname}">
+            <include name="net/**"/>
+            <include name="mongocloud/**"/>
+            <include name="bwf/**"/>
+        </jar>
+    </target>
+    
+    <target name="all" depends="jar,war"/>
+    
+    <target name="clean">
+        <delete dir="${tmpDir}"/>
+    </target>
+    
 </project>
 
