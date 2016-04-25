@@ -18,7 +18,7 @@ To run the webapp demo just deploy mongogocloud.war to the webapp container.
 The main classes are:
 * mongogocloud.server.fs.MonfoFs - the filesystem implementation
 * mongogocloud.server.servlet.BasicAuthFilter - the servlet filer implementing access control
-mongogocloud.server.servlet.FsFilter - the servlet filer implementing a webdav interface to MongoFs
+* mongogocloud.server.servlet.FsFilter - the servlet filer implementing a webdav interface to MongoFs
 
 You can combine the above components to implement the needed functionality.
 See the Main class above or web.xml as example.
