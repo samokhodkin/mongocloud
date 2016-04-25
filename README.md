@@ -6,8 +6,8 @@ A simple cloud storage with WebDAV interface.
 ##Building
 You need jdk 1.8 and ant. Build script is in the root.
 This script produces 2 files:
-release/mongogocloud.jar  - the standalone app
-release/mongogocloud.war  - the webapp 
+* release/mongogocloud.jar  - the standalone app
+* release/mongogocloud.war  - the packaged webapp 
 
 ##Running
 The main class for standalone demo is mongogocloud.server.app.Main.
