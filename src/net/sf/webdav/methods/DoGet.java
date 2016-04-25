@@ -93,7 +93,7 @@ public class DoGet extends DoHead {
     protected void folderBody(ITransaction transaction, String path,
             HttpServletResponse resp, HttpServletRequest req)
             throws IOException {
-//System.out.println("DoGet.folderBody("+path+")");
+//System.out.println("DoGet.folderBody(path="+path+")");
         StoredObject so = _store.getStoredObject(transaction, path);
         if (so == null) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, req
