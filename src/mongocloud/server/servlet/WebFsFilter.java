@@ -18,6 +18,7 @@ System.out.println("***********************WebFsFilter.init()*******************
 System.out.println("************************************************************************");
       fs=new MongoFs();
       fs.db=(MongoCollection)filterConfig.getServletContext().getAttribute(PARAM_COLL_FILES);
+      prefix=filterConfig.getInitParameter(PARAM_FS_PREFIX);
       super.init(filterConfig);
    }
 }

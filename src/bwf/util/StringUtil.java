@@ -1,5 +1,6 @@
 package bwf.util;
 
+import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 import java.lang.reflect.*;
@@ -8,48 +9,127 @@ public class StringUtil{
    public static boolean matches(String s1, String s2){
       if(s1!=null && s1.length()==0) s1=null;
       if(s2!=null && s2.length()==0) s2=null;
-      return equals(s1,s2);
+      return ObjectUtil.equals(s1,s2);
    }
    
-   public static boolean equals(Object o1, Object o2){
-      if(o1==null) return o2==null;
-      return o1.equals(o2);
+   public static String join(Collection<String> c, String sep){
+      return join(c,sep,new StringBuilder()).toString();
+   }
+   
+   public static StringBuilder join(Collection<String> c, String sep, StringBuilder out){
+      boolean doSep=false;
+      for(String s: c){
+         if(doSep) out.append(sep);
+         out.append(s);
+         doSep=true;
+      }
+      return out;
+   }
+   
+   //print public fields
+   public static String toString(Object o){
+      if(o==null) return "null";
+      StringBuilder sb=new StringBuilder();
+      Class c=o.getClass();
+      sb.append(c.getSimpleName()).append("(");
+      for(Field f: c.getFields()){
+         if((f.getModifiers()&Modifier.STATIC)!=0) continue;
+         try{
+            sb.append(f.getName()).append("=").append(f.get(o)).append("; ");
+         }
+         catch(Exception e){}
+      }
+      return sb.append(")").toString();
+   }
+   
+   public static String loadFile(String path) throws IOException{
+      Reader in=new FileReader(path);
+      StringBuilder sb=new StringBuilder();
+      for(int c; (c=in.read())!=-1;) sb.append((char)c);
+      return sb.toString();
+   }
+   
+   public static String saveText(String text,String path) throws IOException{
+      File f=new File(path);
+      Writer out=new FileWriter(f);
+      try{
+         out.write(text);
+         return f.getCanonicalPath();
+      }
+      finally{
+         out.close();
+      }
+   }
+   
+   public static String[] loadPropertiesAsArray(String path) throws IOException{
+      Reader in=new FileReader(path);
+      Properties p=new Properties();
+      p.load(in);
+      String[] args=new String[p.size()*2];
+      int i=0;
+      for(String name: p.stringPropertyNames()){
+         args[i++]=name;
+         args[i++]=p.getProperty(name);
+      }
+      return args;
    }
    
    /**
     * parse class fields from args list
     * e.g.
     * {"-myField", "xyz"} results in c.myField="xyz"
-    * Respected are String, int, double, boolean fields
-    */
-   public static void parseArgs(Class<?> c, String[] args) throws Exception{
+    * Respected are String, String[], String[][], int, double, boolean fields
+    * if -theName corresponds to static c.theName, the next item is processed as a value
+    * otherwise args list is printed and false returned
+    **/
+   public static boolean parseArgs(Class<?> c, String[] args){
+      Map<String,Field> fields=getAssignableFields(c);
       for(int i=0;i<args.length;){
          String name=args[i++];
-         String value=args[i++];
          if(name.startsWith("-")) name=name.substring(1);
-         Field f=c.getDeclaredField(name);
-         if(f==null) continue;
-         if((f.getModifiers()&Modifier.STATIC)==0) continue;
+         if(!fields.containsKey(name)){
+            printArgs(c);
+            continue;
+         }
+         String value=args[i++];
+         Field f=fields.get(name);
          Class<?> type=f.getType();
          f.setAccessible(true);
-         if(type.equals(String.class)) f.set(null,value);
-         if(type.equals(String[].class)) f.set(null,parseStringArray(value));
-         if(type.equals(String[][].class)) f.set(null,parseStringArray2(value));
-         if(type.equals(Integer.TYPE)) f.setInt(null,Integer.parseInt(value));
-         if(type.equals(Float.TYPE)) f.setDouble(null,Float.parseFloat(value));
-         if(type.equals(Double.TYPE)) f.setDouble(null,Double.parseDouble(value));
-         if(type.equals(Boolean.TYPE)) f.setBoolean(null,Boolean.parseBoolean(value));
+         try{
+            if(type.equals(String.class)) f.set(null,value);
+            if(type.equals(String[].class)) f.set(null,parseStringArray(value));
+            if(type.equals(String[][].class)) f.set(null,parseStringArray2(value));
+            if(type.equals(Integer.TYPE)) f.setInt(null,Integer.parseInt(value));
+            if(type.equals(Float.TYPE)) f.setFloat(null,Float.parseFloat(value));
+            if(type.equals(Double.TYPE)) f.setDouble(null,Double.parseDouble(value));
+            if(type.equals(Boolean.TYPE)) f.setBoolean(null,Boolean.parseBoolean(value));
+         }
+         catch(IllegalAccessException e){
+            throw new Error(e);
+         }
+      }
+      return true;
+   }
+   
+   public static void printArgs(Class<?> c){
+      try{
+         printArgs(getAssignableFields(c));
+      }
+      catch(IllegalAccessException e){
+         throw new Error(e);
       }
    }
    
-   public static void printArgs(Class<?> c) throws Exception{
-      while(c!=null){
-         for(Field f:c.getDeclaredFields()){
-            if((f.getModifiers()&Modifier.STATIC)==0) continue;
-            f.setAccessible(true);
-            System.out.println("-"+f.getName()+" <"+f.getType().getSimpleName()+"> (default: "+f.get(null)+")");
-         }
-         c=c.getSuperclass();
+   private static Map<String,Field> getAssignableFields(Class<?> c){
+      return ObjectUtil.getFields(
+         c, Modifier.STATIC, Modifier.FINAL|Modifier.TRANSIENT
+      );
+   }
+   
+   private static void printArgs(Map<String,Field> fields) throws IllegalAccessException{
+      for(Field f:fields.values()){
+         f.setAccessible(true);
+         System.out.println("-"+f.getName()+" <"+f.getType().getSimpleName()+"> (default: "+f.get(null)+")");
       }
    }
    
@@ -127,16 +207,16 @@ public class StringUtil{
    static boolean booleanField;
    
    public static void main(String[] args) throws Exception{
-      String s="{\"xxx\",aaa,\" ccc \",\"\",{1,2,3},}";
-      System.out.println(parseList(listPattern.matcher(s),0));
-      System.out.println(Arrays.asList(parseStringArray(s)));
-      s="{{\"xxx\",aaa},{\" ccc \",\"\"},{1,2,3},}";
-      System.out.println(parseList(listPattern.matcher(s),0));
-      for(String[] item:parseStringArray2(s)){
-         if(item==null) System.out.println(item);
-         else System.out.println(Arrays.asList(item));
-      }
-      System.exit(0);
+//      String s="{\"xxx\",aaa,\" ccc \",\"\",{1,2,3},}";
+//      System.out.println(parseList(listPattern.matcher(s),0));
+//      System.out.println(Arrays.asList(parseStringArray(s)));
+//      s="{{\"xxx\",aaa},{\" ccc \",\"\"},{1,2,3},}";
+//      System.out.println(parseList(listPattern.matcher(s),0));
+//      for(String[] item:parseStringArray2(s)){
+//         if(item==null) System.out.println(item);
+//         else System.out.println(Arrays.asList(item));
+//      }
+//      System.exit(0);
       
       printArgs(StringUtil.class);
       parseArgs(StringUtil.class, new String[]{

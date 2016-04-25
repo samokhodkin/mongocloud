@@ -19,12 +19,14 @@ package mongocloud.server.servlet;
 public interface InitParams{
    //context parameters, common to both filters
    //also used as context attrs, for pasing objects
-   String PARAM_DB="mongocloud.dbname";             //mongo db name
-   String PARAM_COLL_FILES="mongocloud.collFiles";  //mongo collection name for files
-   String PARAM_COLL_USERS="mongocloud.collUsers";  //mongo collection name for users
-   String PARAM_USERS="mongocloud.users";           //initial user list, string "user1:pass1,user2:pass2,.."
+   String PARAM_DB="mongo.db.name";             //mongo db name
+   String PARAM_COLL_FILES="mongo.collection.files";  //mongo collection name for files
+   String PARAM_COLL_USERS="mongo.collection.users";  //mongo collection name for users
+   String PARAM_FS_PREFIX="fsPrefix";  //mongo collection name for users
+   String PARAM_DEFAULT_USERS="defaultUsers";           //initial user list, string "user1:pass1,user2:pass2,.."
    
    //auth filter init parameters
-   String PARAM_AUTH_REALM="mongocloud.authRealm"; //BASIC auth realm, any string
-   String PARAM_FORCE_AUTH="mongocloud.forceAuth"; //disallow anonymous connection; true/false
+   String PARAM_AUTH_REALM="authRealm"; //BASIC auth realm, any string
+   String PARAM_AUTH_FORCE="forceAuth"; //disallow anonymous connection; true/false
+   String PARAM_AUTH_AUTOCREATE="autocreate"; //disallow anonymous connection; true/false
 }

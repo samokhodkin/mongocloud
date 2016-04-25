@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                      http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+  version="3.0"
+  metadata-complete="true">
+  
+  <!--
+  	Sample deployment descriptor
+  	Creates a webdav share right on the context path
+  -->
+  
+    <display-name>MongoCloud</display-name>
+    <description>Webdav/mongodb filesystem</description>
+    
+    <!-- mongo db name, mandatory-->
+    <context-param>
+        <param-name>mongo.db.name</param-name>
+        <param-value>mongocloud</param-value>
+    </context-param>
+    <!-- files collection name, mandatory   -->
+    <context-param>
+        <param-name>mongo.collection.files</param-name>
+        <param-value>files</param-value>
+    </context-param>
+    <!-- users collection name, mandatory-->
+    <context-param>
+        <param-name>mongo.collection.users</param-name>
+        <param-value>users</param-value>
+    </context-param>
+    <!--default user list: {{user1,pass1},{user2,pass2},...} , optional  -->
+    <context-param>
+        <param-name>defautUsers</param-name>
+        <param-value>{{user,123,{bob,marley},{alice,cooper}}</param-value>
+    </context-param>
+    
+    <!-- mandatory -->
+    <listener>
+        <listener-class>mongocloud.server.servlet.ContextInitializer</listener-class>
+    </listener>
+    
+    <!-- enables access right management -->
+    <!-- optional, must go before fs filter -->
+    <filter>
+        <filter-name>AuthFilter</filter-name>
+        <display-name>AUTH filter</display-name>
+        <filter-class>mongocloud.server.servlet.WebBasicAuthFilter</filter-class>
+        <init-param>
+        	<param-name>authRealm</param-name>
+        	<param-value>mongocloud</param-value>
+        </init-param>
+        <!--require auth-->
+        <init-param>
+        	<param-name>forceAuth</param-name>
+        	<param-value>true</param-value>
+        </init-param>
+        <!--create new users on the fly-->
+        <init-param>
+        	<param-name>autocreate</param-name>
+        	<param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>    
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    <!-- implements FS -->
+    <filter>
+        <filter-name>FsFilter</filter-name>
+        <display-name>FS filter</display-name>
+        <filter-class>mongocloud.server.servlet.WebFsFilter</filter-class>
+		<!-- defines FS path after context -->
+		<!-- mandatory, must match the constant part of mapping -->
+        <!-- if mapping is '/*', must be omited -->
+        <!-- e.g. context="/mycloud", prefix="/fs", mapping="/fs/*", FS path is "/mycloud/fs" -->
+		<!--init-param>
+        	<param-name>fsPrefix</param-name>
+        	<param-value></param-value>
+        </init-param-->
+    </filter>
+    <filter-mapping>
+        <filter-name>FsFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+</web-app>

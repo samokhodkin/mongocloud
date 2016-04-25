@@ -14,4 +14,19 @@ public class ObjectUtil{
       if(o1==null || o2==null) return true;
       return o1.equals(o2);
    }
+   
+   public static Map<String,Field> getFields(
+      Class<?> c, int modInclude, int modExclude
+   ){
+      Map<String,Field> map=new LinkedHashMap<String,Field>();
+      while(c!=null){
+         for(Field f:c.getDeclaredFields()){
+            if((f.getModifiers()&modInclude)==0) continue;
+            if((f.getModifiers()&modExclude)!=0) continue;
+            map.put(f.getName(),f);
+         }
+         c=c.getSuperclass();
+      }
+      return map;
+   }
 }

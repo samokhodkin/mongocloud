@@ -8,6 +8,7 @@ import com.mongodb.*;
 import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import org.bson.Document;
+import static bwf.util.StringUtil.*;
 
 /**
  * 
@@ -35,10 +36,11 @@ public class ContextInitializer implements ServletContextListener, InitParams{
       }
       else userDb=(MongoCollection)context.getAttribute(PARAM_COLL_USERS);
       
-      String usrListStr=context.getInitParameter(PARAM_USERS); //"name1:pass1,name2:pass2,..."
-      if(usrListStr!=null){ //create users
-         for(String s: usrListStr.split(",")){
-            String[] namePass=s.split(":");
+      String[][] usrList=parseStringArray2(
+         context.getInitParameter(PARAM_DEFAULT_USERS) //"{{name1,pass1},{name2,pass2},...}"
+      );
+      if(usrList!=null){ //create users
+         for(String[] namePass: usrList){
             //this is an "upsert" operation: update existing, insert otherwise, see last arg
             userDb.updateMany(
                new Document(BasicAuthFilter.KEY_NAME,namePass[0]),
