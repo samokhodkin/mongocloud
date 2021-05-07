@@ -1,7 +1,5 @@
 # mongocloud
-A simple cloud storage with WebDAV interface.
-
-[Home page and live demo](http://samokhodkin.tk:8080/info/fs.html)
+A simple cloud storage server with WebDAV interface. Built as an excersize with MongoDB.
 
 ##Building
 You need jdk 1.8 and ant. Build script is in the root.
